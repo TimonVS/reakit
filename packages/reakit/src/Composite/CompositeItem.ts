@@ -197,8 +197,10 @@ export const useCompositeItem = createHook<
         onFocusRef.current?.(event);
         // const focusComposite = true;
         const focusComposite =
+          // @ts-ignore
           shouldFocusComposite.current || !!event.currentTarget.test;
         shouldFocusComposite.current = false;
+        // @ts-ignore
         event.currentTarget.test = false;
         if (event.defaultPrevented) return;
         if (isPortalEvent(event)) return;

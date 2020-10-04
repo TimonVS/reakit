@@ -11,7 +11,6 @@ import { isSelfTarget } from "reakit-utils/isSelfTarget";
 import { useLiveRef } from "reakit-utils/useLiveRef";
 import { canUseDOM } from "reakit-utils/canUseDOM";
 import { getNextActiveElementOnBlur } from "reakit-utils/getNextActiveElementOnBlur";
-import { act } from "react-dom/test-utils";
 import { useTabbable, TabbableOptions, TabbableHTMLProps } from "../Tabbable";
 import { useRole } from "../Role/Role";
 import { CompositeStateReturn } from "./CompositeState";
@@ -212,8 +211,10 @@ export const useComposite = createHook<CompositeOptions, CompositeHTMLProps>({
       if (lolRef.current && currentElement) {
         // TODO: Create something like focusElement() and isElementFocused()?
         // realFocus()
+        // @ts-ignore
         currentElement.test = true;
         currentElement.focus();
+        // @ts-ignore
         currentElement.test = false;
       }
       lolRef.current = false;
