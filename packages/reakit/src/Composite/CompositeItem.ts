@@ -180,7 +180,8 @@ export const useCompositeItem = createHook<
       if (options.unstable_moves && isCurrentItemRef.current) {
         shouldFocusComposite.current = true;
         element.focus();
-        shouldFocusComposite.current = false;
+        // Bug on IE 11
+        // shouldFocusComposite.current = false;
       }
     }, [options.unstable_moves]);
 
@@ -222,6 +223,8 @@ export const useCompositeItem = createHook<
           if (composite) {
             hasFocusedComposite.current = true;
             composite.focus();
+            // Only Safari
+            // event.currentTarget.scrollIntoView({ block: "nearest" });
           }
         }
       },
