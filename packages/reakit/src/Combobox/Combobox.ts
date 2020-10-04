@@ -5,6 +5,7 @@ import { useLiveRef } from "reakit-utils/useLiveRef";
 import { useForkRef } from "reakit-utils/useForkRef";
 import { warning } from "reakit-warning";
 import { useUpdateEffect } from "reakit-utils/useUpdateEffect";
+import { hasFocus } from "reakit-utils/hasFocus";
 import {
   CompositeOptions,
   CompositeHTMLProps,
@@ -132,15 +133,24 @@ export const unstable_useCombobox = createHook<
         return;
       }
       const element = ref.current;
-      warning(
-        !element,
-        "Can't auto select combobox because `ref` wasn't passed to the component",
-        "See https://reakit.io/docs/combobox"
-      );
-      element?.setSelectionRange(
-        options.inputValue.length,
-        options.currentValue.length
-      );
+      if (!element) {
+        warning(
+          true,
+          "Can't auto select combobox because `ref` wasn't passed to the component",
+          "See https://reakit.io/docs/combobox"
+        );
+        return;
+      }
+      if (
+        hasFocus(element) &&
+        // Fixes Combobox Fetch type ac and then select all before results
+        element.selectionStart === element.selectionEnd
+      ) {
+        element.setSelectionRange(
+          options.inputValue.length,
+          options.currentValue.length
+        );
+      }
     }, [
       updated,
       options.inline,

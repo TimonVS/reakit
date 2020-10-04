@@ -2639,7 +2639,7 @@ function template(value: string) {
   });
 });
 
-test("block intermediate focus/blur events when composite container is not the parent", () => {
+test("block intermediate focus/blur events when composite container is not the parent", async () => {
   const stack: string[] = [];
   const returnTarget = (event: React.SyntheticEvent) => {
     const target = event.target as HTMLElement;

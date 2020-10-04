@@ -112,9 +112,11 @@ export const useMenuItem = createHook<MenuItemOptions, MenuItemHTMLProps>({
         if (menu?.role === "menubar") return;
         if (isMouseInTransitToSubmenu(event)) return;
         if (hasFocusWithin(event.currentTarget)) return;
-        event.currentTarget.focus();
+        if (options.id) {
+          options.move?.(options.id);
+        }
       },
-      []
+      [options.move, options.id]
     );
 
     const onMouseLeave = React.useCallback(

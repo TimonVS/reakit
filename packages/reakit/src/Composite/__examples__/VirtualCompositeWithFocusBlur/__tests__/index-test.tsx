@@ -1,5 +1,5 @@
 import * as React from "react";
-import { render, screen, press, click } from "reakit-test-utils";
+import { render, screen, press, click, focus } from "reakit-test-utils";
 import VirtualCompositeWithFocusBlur from "..";
 
 test("focus/blur on virtual composite with mouse click", () => {
@@ -136,4 +136,50 @@ test("focus/blur on virtual composite with keyboard", () => {
       </ul>
     </div>
   `);
+});
+
+test("focus/blur on virtual composite with virtual cursor", () => {
+  render(<VirtualCompositeWithFocusBlur />);
+  focus(screen.getByText("item-2"));
+  focus(screen.getByText("item-3"));
+  focus(screen.getByText("item-6"));
+  focus(screen.getByText("item-6"));
+  expect(screen.getByRole("log")).toMatchInlineSnapshot(`
+  <div
+    role="log"
+  >
+    <ul>
+      <li>
+        focus item-2
+      </li>
+      <li>
+        focus container - item-2
+      </li>
+      <li>
+        blur item-2
+      </li>
+      <li>
+        blur container - item-2
+      </li>
+      <li>
+        focus item-3
+      </li>
+      <li>
+        focus container - item-3
+      </li>
+      <li>
+        blur item-3
+      </li>
+      <li>
+        blur container - item-3
+      </li>
+      <li>
+        focus item-6
+      </li>
+      <li>
+        focus container - item-6
+      </li>
+    </ul>
+  </div>
+`);
 });

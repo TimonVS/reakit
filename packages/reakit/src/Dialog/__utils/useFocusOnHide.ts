@@ -3,6 +3,7 @@ import { useUpdateEffect } from "reakit-utils/useUpdateEffect";
 import { warning } from "reakit-warning";
 import { isTabbable } from "reakit-utils/tabbable";
 import { getActiveElement } from "reakit-utils/getActiveElement";
+import { getDocument } from "reakit-utils/getDocument";
 import { contains } from "reakit-utils/contains";
 import { ensureFocus } from "reakit-utils/ensureFocus";
 import { DialogOptions } from "../Dialog";
@@ -39,7 +40,18 @@ export function useFocusOnHide(
     }
     const finalFocusEl =
       options.unstable_finalFocusRef?.current || disclosureRef.current;
+
     if (finalFocusEl) {
+      if (finalFocusEl.id) {
+        const document = getDocument(finalFocusEl);
+        const compositeElement = document.querySelector<HTMLElement>(
+          `[aria-activedescendant=${finalFocusEl.id}]`
+        );
+        if (compositeElement) {
+          ensureFocus(compositeElement);
+          return;
+        }
+      }
       ensureFocus(finalFocusEl);
       return;
     }

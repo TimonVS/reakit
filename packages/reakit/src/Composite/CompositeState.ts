@@ -452,10 +452,6 @@ function useIsUnmountedRef() {
   }, []);
   return isUnmountedRef;
 }
-
-const isMobile =
-  typeof window !== "undefined" && /Mobi/i.test(window.navigator.userAgent);
-
 export function useCompositeState(
   initialState: SealedInitialState<CompositeInitialState> = {}
 ): CompositeStateReturn {
@@ -470,7 +466,6 @@ export function useCompositeState(
     unstable_includesBaseElement,
     ...sealed
   } = useSealedState(initialState);
-  const hasVirtualFocus = !isMobile && virtual;
   const idState = unstable_useIdState(sealed);
   const [
     {
@@ -487,7 +482,7 @@ export function useCompositeState(
     },
     dispatch,
   ] = React.useReducer(reducer, {
-    unstable_virtual: hasVirtualFocus,
+    unstable_virtual: virtual,
     rtl,
     orientation,
     items: [],
@@ -500,7 +495,7 @@ export function useCompositeState(
     pastIds: [],
     unstable_includesBaseElement:
       unstable_includesBaseElement ?? currentId === null,
-    initialVirtual: hasVirtualFocus,
+    initialVirtual: virtual,
     initialRTL: rtl,
     initialOrientation: orientation,
     initialCurrentId: currentId,

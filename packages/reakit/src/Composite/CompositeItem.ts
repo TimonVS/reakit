@@ -9,7 +9,6 @@ import { isTextField } from "reakit-utils/isTextField";
 import { useLiveRef } from "reakit-utils/useLiveRef";
 import { isPortalEvent } from "reakit-utils/isPortalEvent";
 import { isSelfTarget } from "reakit-utils/isSelfTarget";
-import { ensureFocus } from "reakit-utils/ensureFocus";
 import {
   ClickableOptions,
   ClickableHTMLProps,
@@ -119,11 +118,14 @@ export const useCompositeItem = createHook<
     };
   },
 
+  // TODO: NOT POSSIBLE! ELEMENT.FOCUS() should work
+  // Try calling element.focus() on the composite instead when dialog closes
   useProps(
     options,
     {
       ref: htmlRef,
       tabIndex: htmlTabIndex = 0,
+      onMouseDown: htmlOnMouseDown,
       onFocus: htmlOnFocus,
       onBlurCapture: htmlOnBlurCapture,
       onKeyDown: htmlOnKeyDown,
@@ -136,8 +138,10 @@ export const useCompositeItem = createHook<
     const trulyDisabled = options.disabled && !options.focusable;
     const isCurrentItem = options.currentId === id;
     const isCurrentItemRef = useLiveRef(isCurrentItem);
+    const shouldFocusComposite = React.useRef(false);
     const hasFocusedComposite = React.useRef(false);
     const item = useItem(options);
+    const onMouseDownRef = useLiveRef(htmlOnMouseDown);
     const onFocusRef = useLiveRef(htmlOnFocus);
     const onBlurCaptureRef = useLiveRef(htmlOnBlurCapture);
     const onKeyDownRef = useLiveRef(htmlOnKeyDown);
@@ -174,13 +178,28 @@ export const useCompositeItem = createHook<
       // isCurrentItemRef instead of isCurrentItem because we don't want to
       // focus the item if isCurrentItem changes (and options.moves doesn't).
       if (options.unstable_moves && isCurrentItemRef.current) {
+        shouldFocusComposite.current = true;
         element.focus();
+        shouldFocusComposite.current = false;
       }
     }, [options.unstable_moves]);
+
+    const onMouseDown = React.useCallback(
+      (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+        onMouseDownRef.current?.(event);
+        shouldFocusComposite.current = true;
+      },
+      []
+    );
 
     const onFocus = React.useCallback(
       (event: React.FocusEvent<HTMLElement>) => {
         onFocusRef.current?.(event);
+        // const focusComposite = true;
+        const focusComposite =
+          shouldFocusComposite.current || !!event.currentTarget.test;
+        shouldFocusComposite.current = false;
+        event.currentTarget.test = false;
         if (event.defaultPrevented) return;
         if (isPortalEvent(event)) return;
         if (!id) return;
@@ -190,12 +209,17 @@ export const useCompositeItem = createHook<
         // composite container receives focus, not the composite item.
         // But we don't want to do this if the target is another focusable
         // element inside the composite item, such as CompositeItemWidget.
-        if (options.unstable_virtual && options.baseId && isSelfTarget(event)) {
+        if (
+          focusComposite &&
+          options.unstable_virtual &&
+          options.baseId &&
+          isSelfTarget(event)
+        ) {
           const { target } = event;
           const composite = getDocument(target).getElementById(options.baseId);
           if (composite) {
             hasFocusedComposite.current = true;
-            ensureFocus(composite);
+            composite.focus();
           }
         }
       },
@@ -319,6 +343,7 @@ export const useCompositeItem = createHook<
       tabIndex: shouldTabIndex ? htmlTabIndex : -1,
       "aria-selected":
         options.unstable_virtual && isCurrentItem ? true : undefined,
+      onMouseDown,
       onFocus,
       onBlurCapture,
       onKeyDown,

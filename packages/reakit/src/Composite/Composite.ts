@@ -11,6 +11,7 @@ import { isSelfTarget } from "reakit-utils/isSelfTarget";
 import { useLiveRef } from "reakit-utils/useLiveRef";
 import { canUseDOM } from "reakit-utils/canUseDOM";
 import { getNextActiveElementOnBlur } from "reakit-utils/getNextActiveElementOnBlur";
+import { act } from "react-dom/test-utils";
 import { useTabbable, TabbableOptions, TabbableHTMLProps } from "../Tabbable";
 import { useRole } from "../Role/Role";
 import { CompositeStateReturn } from "./CompositeState";
@@ -203,13 +204,32 @@ export const useComposite = createHook<CompositeOptions, CompositeHTMLProps>({
       [options.unstable_virtual, options.items]
     );
 
+    const lolRef = React.useRef(false);
+    const [loler, setLoler] = React.useState({});
+
+    React.useEffect(() => {
+      const currentElement = currentItem?.ref.current || null;
+      if (lolRef.current && currentElement) {
+        // TODO: Create something like focusElement() and isElementFocused()?
+        // realFocus()
+        currentElement.test = true;
+        currentElement.focus();
+        currentElement.test = false;
+      }
+      lolRef.current = false;
+    }, [currentItem, loler]);
+
     const onFocus = React.useCallback(
       (event: React.FocusEvent) => {
         onFocusRef.current?.(event);
         if (event.defaultPrevented) return;
         if (options.unstable_virtual) {
           const currentElement = currentItem?.ref.current || null;
-          if (isSelfTarget(event)) {
+          // console.log(
+          //   event.target,
+          //   event.currentTarget.ownerDocument.activeElement
+          // );
+          if (isSelfTarget(event) && currentElement) {
             // This means that the composite element has been focused while the
             // composite item has not. For example, by clicking on the
             // composite element without touching any item, or by tabbing into
@@ -218,7 +238,16 @@ export const useComposite = createHook<CompositeOptions, CompositeHTMLProps>({
             // When it receives focus, the composite item will put focus back
             // on the composite element, in which case hasItemWithFocus will be
             // true.
-            currentElement?.focus();
+            // requestAnimationFrame(() => {
+            //   currentElement.test = true;
+            //   currentElement.focus();
+            //   currentElement.test = false;
+            // });
+            lolRef.current = true;
+            setLoler({});
+            // options.move(currentElement.id);
+          } else if (isSelfTarget(event) && !options.items?.length) {
+            lolRef.current = true;
           }
         } else if (isSelfTarget(event)) {
           // When the roving tabindex composite gets intentionally focused (for
@@ -228,7 +257,12 @@ export const useComposite = createHook<CompositeOptions, CompositeHTMLProps>({
           options.setCurrentId?.(null);
         }
       },
-      [options.unstable_virtual, currentItem, options.setCurrentId]
+      [
+        options.unstable_virtual,
+        currentItem,
+        options.items,
+        options.setCurrentId,
+      ]
     );
 
     const onBlurCapture = React.useCallback(
@@ -372,7 +406,8 @@ export const useComposite = createHook<CompositeOptions, CompositeHTMLProps>({
       // Composite will only be tabbable by default if the focus is managed
       // using aria-activedescendant, which requires DOM focus on the container
       // element (the composite)
-      return tabbableHTMLProps;
+      // TODO: Test virtual composite with dialog
+      return { tabIndex: 0, ...tabbableHTMLProps };
     }
     return { ...htmlProps, ref: tabbableHTMLProps.ref };
   },
