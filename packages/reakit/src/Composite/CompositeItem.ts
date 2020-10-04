@@ -181,7 +181,9 @@ export const useCompositeItem = createHook<
         shouldFocusComposite.current = true;
         element.focus();
         // Bug on IE 11
-        // shouldFocusComposite.current = false;
+        requestAnimationFrame(() => {
+          // shouldFocusComposite.current = false;
+        });
       }
     }, [options.unstable_moves]);
 
@@ -200,7 +202,7 @@ export const useCompositeItem = createHook<
         const focusComposite =
           // @ts-ignore
           shouldFocusComposite.current || !!event.currentTarget.test;
-        shouldFocusComposite.current = false;
+        // shouldFocusComposite.current = false;
         // @ts-ignore
         event.currentTarget.test = false;
         if (event.defaultPrevented) return;
@@ -240,6 +242,7 @@ export const useCompositeItem = createHook<
     const onBlurCapture = React.useCallback(
       (event: React.FocusEvent<HTMLElement>) => {
         onBlurCaptureRef.current?.(event);
+        shouldFocusComposite.current = false;
         if (event.defaultPrevented) return;
         if (options.unstable_virtual && hasFocusedComposite.current) {
           // When hasFocusedComposite is true, composite has been focused right
